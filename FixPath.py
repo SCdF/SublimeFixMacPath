@@ -14,6 +14,7 @@ def isMac():
 
 if isMac():
 	fixPathSettings = None
+	lastAdditionalPathItems = None
 	originalEnv = {}
 
 	def getSysPath():
@@ -34,17 +35,24 @@ if isMac():
 
 
 	def fixPath():
-		currSysPath = getSysPath()
-		# Basic sanity check to make sure our new path is not empty
-		if len(currSysPath) < 1:
-			return False
+		additionalPathItems = fixPathSettings.get("additional_path_items", []);
 
-		environ['PATH'] = currSysPath
+		# Only do work if path items changes
+		global lastAdditionalPathItems
+		if additionalPathItems != lastAdditionalPathItems:
+			lastAdditionalPathItems = additionalPathItems
 
-		for pathItem in fixPathSettings.get("additional_path_items", []):
-			environ['PATH'] = pathItem + ':' + environ['PATH']
+			currSysPath = getSysPath()
+			# Basic sanity check to make sure our new path is not empty
+			if len(currSysPath) < 1:
+				return False
 
-		return True
+			environ['PATH'] = currSysPath
+
+			for pathItem in additionalPathItems:
+				environ['PATH'] = pathItem + ':' + environ['PATH']
+
+			return True
 
 
 	def plugin_loaded():
